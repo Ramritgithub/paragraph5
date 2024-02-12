@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html>
+<head>
+   
+    <meta harset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+     <title>pharagraph</title>
+    <link rel="stylesheet" href="style.css">
+    
+    </head>
+  <body>   
+      
+     <div class="first">
+         <br><br><br>
+      <div class="head">Chapter IV<br><br>
+     <h1> Feature Selection in<br>Data Mining</h1>
+    <h6>YongSeog Kim<br>University of Iowa, USA<p>W. Nick Street<br>University of Iowa, USA<p>Filippo Menczer<br>University of Iowa, USA</h6></div>
+      <br>
+         <p class="head">ABSTRACT</p>
+               
+         
+        <i> Feature subset selection is an important problem in knowledge discovery, not only for
+the insight gained from determining relevant modeling variables, but also for the
+improved understandability, scalability, and, possibly, accuracy of the resulting
+models. The purpose of this chapter is to provide a comprehensive analysis of feature
+selection via evolutionary search in supervised and unsupervised learning. To achieve
+this purpose, we first discuss a general framework for feature selection based on a new
+search algorithm, Evolutionary Local Selection Algorithm (ELSA). The search is
+formulated as a multi-objective optimization problem to examine the trade-off between
+the complexity of the generated solutions against their quality. ELSA considers
+multiple objectives efficiently while avoiding computationally expensive global
+comparison. We combine ELSA with Artificial Neural Networks (ANNs) and ExpectationMaximization (EM) algorithms for feature selection in supervised and unsupervised
+learning respectively. Further, we provide a new two-level evolutionary algorithm,
+Meta-Evolutionary Ensembles (MEE), where feature selection is used to promote the
+diversity among classifiers in the same ensemble.  </i><br>
+         
+          <p class="head">INTRODUCTION<p>
+              Feature selection has been an active research area in pattern recognition, statistics,
+and data mining communities. The main idea of feature selection is to choose a subset
+of input variables by eliminating features with little or no predictive information. Feature
+selection can significantly improve the comprehensibility of the resulting classifier         
+         <br><br></div><br>
+        
+<div class="first">
+   <p>models and often builds a model that generalizes better to unseen points. Further, it is
+often the case that finding the correct subset of predictive features is an important
+problem in its own right. For example, based on the selected features, a physician may
+decide whether a risky surgical procedure is necessary for treatment or not.<p>
+Feature selection in supervised learning where the main goal is to find a feature
+subset that produces higher classification accuracy has been well studied. Recently,
+several researchers (Agrawal, Gehrke, Gunopulos, & Raghavan, 1998; Devaney & Ram,
+1997; Dy &Brodley, 2000b) have studied feature selection and clustering together with
+a single or unified criterion. For feature selection in unsupervised learning, learning
+algorithms are designed to find natural grouping of the examples in the feature space.
+Thus, feature selection in unsupervised learning aims to find a good subset of features
+that forms high quality clusters for a given number of clusters.<p>
+However, the traditional approaches to feature selection with a single evaluation
+criterion have shown limited capability in terms of knowledge discovery and decision
+support. This is because decision-makers should take into account multiple, conflicted
+objectives simultaneously. No single criterion for unsupervised feature selection is best
+for every application (Dy & Brodley, 2000a), and only the decision-maker can determine
+the relative weights of criteria for her application. In order to provide a clear picture of
+the possibly nonlinear trade-offs among the various objectives, feature selection has
+been formulated as a multi-objective or Pareto optimization problem.<p>
+In this framework, we evaluate each feature subset in terms of multiple objectives. Each
+solution si
+ is associated with an evaluation vector F = F1
+(si
+),..., FC(si
+) where C is the number
+of quality criteria. One solution s1
+ is said to dominate another solution s2
+ if ∀c: FC(s1
+) ≥FC(s2
+)
+and ∃c: FC(s1
+) > FC(s2
+), where FC is the c-th criterion, c∈ {1,...,C}. Neither solution dominates
+the other if ∃c1
+,c2: FC1(s1
+) > FC2(s2
+), FC2(s2
+) > FC2(s1
+). We define the Pareto front as the set of
+nondominated solutions. In feature selection such as a Pareto optimization, the goal is to
+approximate the Pareto front as best as possible, presenting the decision-maker with a set
+of high-quality solutions from which to choose.<p>
+&nbsp;&nbsp;We use Evolutionary Algorithms (EAs) to intelligently search the space of possible
+feature subsets. A number of multi-objective extensions of EAs have been proposed
+(VanVeldhuizen, 1999) to consider multiple fitness criteria effectively. However, most of
+them employ computationally expensive selection mechanisms to favor dominating
+solutions and to maintain diversity, such as Pareto domination tournaments (Horn, 1997)
+and fitness sharing (Goldberg & Richardson, 1987). We propose a new algorithm,
+Evolutionary Local Selection Algorithms (ELSA), where an individual solution is
+allocated to a local environment based on its criteria values and competes with others
+to consume shared resources only if they are located in the same environment.<p>
+&nbsp;&nbsp;The remainder of the chapter is organized as follows. We first introduce our search
+algorithm, ELSA. Then we discuss the feature selection in supervised and unsupervised
+learning, respectively. Finally, we present a new two-level evolutionary environment,
+Meta-Evolutionary Ensembles (MEE), that uses feature selection as the mechanism for
+boosting diversity of a classifier in an ensemble.
+          
+          
+   </div><br>
+       <div class="first">
+      <div class="head">EVOLUTIONARY LOCAL SELECTION<br>
+ALGORITHMS (ELSA)</div>
+           <p class="c">Agents, Mutation, and Selection<p>
+           
+         &nbsp;&nbsp;  ELSA springs from artificial life models of adaptive agents in ecological environments (Menczer & Belew, 1996). In ELSA, an agent may die, reproduce, or neither, based
+on an endogenous energy level that fluctuates via interactions with the environment.<p>
+Figure 1 outlines the ELSA algorithm at a high level of abstraction.
+The representation of an agent consists of the D bits, and each of the D bits is an
+indicator as to whether the corresponding feature is selected or not (1 if a feature is
+selected, 0 otherwise).&nbsp;&nbsp;  Each agent is first initialized with some random solution and an
+initial reservoir of energy, and competes for a scarce resource, energy, based on multidimensional fitness and the proximity of other agents in solution space. The mutation
+operator randomly selects one bit of the agent and flips it. Our commonality-based
+crossover operator (Chen, Guerra-Salcedo, & Smith, 1999) makes the offspring inherit all
+the common features of the parents.<p>
+&nbsp;&nbsp; In the selection part of the algorithm, each agent compares its current energy level with
+a constant reproduction threshold θ. If its energy is higher than θ, the agent reproduces: the
+agent and its mutated clone that was just evaluated become part of the new population, each
+with half of the parent’s energy.<p> If the energy level of an agent is positive but lower than θ,
+only the agent itself joins the new population. If an agent runs out of energy, it is killed. The
+population size is maintained dynamically over iterations and is determined by the carrying
+capacity of the environment, depending on the costs incurred by any action, and the
+replenishment of resources (Menczer, Street, & Degeratu, 2000).<p>
+           <i>Figure 1: ELSA pseudo-code</i><p>
+           
+           <img src="Screenshot%202024-02-10%20140615.png"></div><br>
+     <div class="first">
+      <p class="c">Energy Allocation and Replenishment<p>
+         &nbsp;&nbsp;In each iteration of the algorithm, an agent explores a candidate solution similar to itself.
+The agent collects ∆E from the environment and is taxed with Ecost for this action. The net
+energy intake of an agent is determined by its offspring’s fitness and the state of the
+environment that corresponds to the set of possible values for each of the criteria being
+optimized.1
+ We have an energy source for each criterion, divided into bins corresponding to
+its values. So, for criterion fitness FC and bin value v, the environment keeps track of the
+energy Eenvt
+c
+(v) corresponding to the value Fc
+ = v. Further, the environment keeps a count
+of the number of agents Pc
+(v) having Fc
+ = v. The energy corresponding to an action
+(alternative solution) a for criterion Fc
+ is given by<br><p>
+<i>Fitness(a,c) = Fc</i>
+(a)<br><p> 
+         
+ &nbsp;&nbsp;Agents receive energy only inasmuch as the environment has sufficient resources;
+if these are depleted, no benefits are available until the environmental resources are
+replenished. Thus, an agent is rewarded with energy for its high fitness values, but also has
+an interest in finding unpopulated niches in objective space, where more energy is available.
+Ecost for any action is a constant  When the environment is replenished with energy,
+each criterion c is allocated an equal share of energy as follows:<br><p> 
+Etot
+<i>Etot
+c = pmaxEcost / C</i><p>
+         <br>
+where C is the number of criteria considered. This energy is apportioned in linear
+proportion to the values of each fitness criterion, so as to bias the population toward more
+promising areas in objective space.<p><br>
+         <p class="c">Advantages and Disadvantages</p>
+<br>
+ &nbsp;&nbsp;One of the major advantages of ELSA is its minimal centralized control over agents.
+By relying on local selection, ELSA minimizes the communication among agents, which
+makes the algorithm efficient in terms of computational time and scalability (Menczer,
+Degaratu, & Street, 2000). Further, the local selection naturally enforces the diversity
+of the population by evaluating agents based on both their quality measurements and
+the number of similar individuals in the neighborhood in objective space. Note also that
+ELSA can be easily combined with any predictive and clustering models.
+In particular, there is no upper limit of number of objective functions that ELSA can
+accommodate. Noting that no single criterion is best for every application, we consider
+all (or at least some) of them simultaneously in order to provide a clear picture of the
+(possibly nonlinear) trade-offs among the various objectives. The decision-maker can
+select a final model after determining her relative weights of criteria for application.
+ELSA can be useful for various tasks in which the maintenance of diversity within
+the population is more important than a speedy convergence to the optimum. Feature
+selection is one such promising application. Based on the well-covered range of feature
+vector complexities, ELSA is able to locate most of the Pareto front (Menczer, Degeratu,
+& Street, 2000). However, for problems requiring effective selection pressure, local
+selection may not be ideal because of its weak selection scheme.<p>
+         
+         </p> </div><br>   
+           
+           <div class="first">
+           <p class="b">FEATURE SELECTION IN<br>
+SUPERVISED LEARNING<br>
+           <p>In this section, we propose a new approach for the customer targeting that combines
+evolutionary algorithms (EAs) and artificial neural networks (ANNs). In particular, we
+want to address the multi-objective nature of the customer targeting applications —
+maximizing hit rate and minimizing complexity of the model through feature selection. We
+use ELSA to search the possible combinations of features, and ANNs to score the
+probability of buying new services or products using only the feature selected by ELSA.<br><p>
+             &nbsp;&nbsp;  In this section, we propose a new approach for the customer targeting that combines
+evolutionary algorithms (EAs) and artificial neural networks (ANNs). In particular, we
+want to address the multi-objective nature of the customer targeting applications —
+maximizing hit rate and minimizing complexity of the model through feature selection. We
+use ELSA to search the possible combinations of features, and ANNs to score the
+probability of buying new services or products using only the feature selected by ELSA.<p>
+               
+       <p class="c">Problem Specification and Data Sets<br><p>
+               &nbsp;&nbsp;  Direct mailings to potential customers have been one of the most common approaches to market a new product or service. With a better understanding of who its
+potential customers were, the company would know more accurately who to target, and
+it could reduce expenses and the waste of time and effort. In particular, we are interested
+in predicting potential customers who would be interested in buying a recreational
+vehicle (RV) insurance policy2
+ while reducing feature dimensionality.<p>
+&nbsp;&nbsp; Suppose that one insurance company wants to advertise a new insurance policy
+based on socio-demographic data over a certain geographic area. From its first direct
+mailing to 5822 prospects, 348 purchased RV insurance, resulting in a hit rate of 348/5822
+= 5.97%. Could the company attain a higher response rate from another carefully chosen
+direct mailing from the top x% of a new set of 4000 potential prospects?<p>
+&nbsp;&nbsp;In our experiment, we use two separate data sets— a training (5822 records) and an
+evaluation set (4000 records). Originally, each data set had 85 attributes, containing
+socio-demographic information (attributes 1-43) and contribution to and ownership of
+various insurance policies (attributes 44-85). The socio-demographic data was derived
+using zip codes, and thus all customers living in areas with the same zip code were
+assumed to have the same socio-demographic attributes. We omitted the first feature
+(customer subtype) mainly because it would expand search space dramatically with little
+information gain if we represented it as a 41-bit variable. Further, we can still exploit the
+information of customer type by recording the fifth feature (customer main type) as a 10-
+bit variable. The other features are considered continuous and scaled to a common range <br><p>
+         <p class="b">ELSA/ANN Model Specification<p>
+<br> <i> Structure of the ELSA/ANN Model</i>
+Our predictive model is a hybrid model of the ELSA and ANN procedures, as shown
+in Figure 2. ELSA searches for a set of feature subsets and passes it to an ANN. The ANN
+extracts predictive information from each subset and learns the patterns using a randomly
+selected two-thirds of the training data. The trained ANN is then evaluated on the
+remaining one-third of the training data, and returns two evaluation metrics, Faccuracy and
+Fcomplexity (described below), to ELSA. Note that in both the learning and evaluation
+procedures, the ANN uses only the selected features. Based on the returned metric    
+               </p></div><br>
+      <div class="first"><p>
+         <p> values, ELSA biases its search to maximize the two objectives until the maximum number
+of iterations is attained.<p>
+Among all evaluated solutions over the generations, we choose for further evaluation the set of candidates that satisfies a minimum hit-rate threshold. With chosen
+candidates, we start a 10-fold cross validation. In this procedure, the training data is
+divided into 10 non-overlapping groups. We train an ANN using the first nine groups
+of training data and evaluate the trained ANN on the remaining group. We repeat this
+procedure until each of the 10 groups has been used as a test set once. We take the
+average of the accuracy measurements over the 10 evaluations and call it an intermediate
+accuracy. We repeat the 10-fold cross validation procedure five times and call the
+average of the five intermediate accuracy estimates estimated accuracy.
+We maintain a superset of the Pareto front containing those solutions with the
+highest accuracy at every Fcomplexity level covered by ELSA. For evaluation purposes, we
+subjectively decided to pick a “best” solution with the minimal number of features at the
+marginal accuracy level.3
+ Then we train the ANN using all the training data with the
+selected features only, and the trained model is used to select the top x% of the potential
+customers in the evaluation set, based on the estimated probability of buying RV
+insurance. We finally calculate the actual accuracy of our model.<p>
+          
+<p class="c">Evaluation Metrics<p>
+          
+We use two heuristicevaluation criteria, Faccuracy and Fcomplexity, to evaluate selected
+feature subsets. Each objective, after being normalized into 25 intervals to allocate
+energy, is to be maximized by ELSA.<p><br>
+Faccuracy: The purpose of this objective is to favor feature sets with a higher hit rate. We
+define two different measures, Faccuracy<p><br>
+1
+ and Faccuracy<p>
+2 for two different experiments.<p>
+In Experiment 1, we select the top 20% of potential customers in descending order
+of the probability of purchasing the product and compute the ratio of the number of actual
+customers, AC, out of the chosen prospects, TC. We calculate Faccuracy
+1 as follows:<p><br>
+          <i>Figure 2: The ELSA/ANN model.</i>
+          <img src="Screenshot%202024-02-10%20140701.png"><p>
+          </p></div><br>
+      
+      <p><div class="first">
+      <p class="c">Experimental Results<p>
+      <i>Experiment 1</i>
+      &nbsp;&nbsp;In this experiment, we select the top 20% of customers to measure the hit rate of each
+solution as in Kim and Street (2000). For comparison purpose, we implement the PCA/
+logit model by first applying PCA on the training set. We select 22 PCs — the minimum
+required to explain more than 90% of the variance in the data set —and use them to reduce
+the dimensionality of the training set and the evaluation set.<p>
+ &nbsp;&nbsp;We set the values for the ELSA parameters in the ELSA/ANN and ELSA/logit models
+as follows: Pr(mutation) = 1.0, pmax = 1,000, Ecost = 0.2, θ = 0.3, and T = 2,000. In both models,
+we select the single solution with the highest expected hit rate among those solutions with
+fewer than 10 features selected. We evaluated each model on the evaluation set and
+summarized our results in Table 1.<p>
+ &nbsp;&nbsp;The column marked “# Correct” shows the number of actual customers who are
+included in the chosen top 20%. The number in parenthesis represents the number of
+selected features, except for the PCA/logit model, where it represents the number of PCs
+selected<p>
+      <i>Table 1: Results of Experiment 1</i><p>
+      <img src="Screenshot%202024-02-10%20140736.png"><p>
+      &nbsp;&nbsp; In terms of the actual hit rate, ELSA/ANN returns the highest actual hit rate. Feature
+selection (the difference in actual hit rate between PCA/logit and ELSA/logit) and nonlinear approximation (the difference in actual hit rate between ELSA/logit and ELSA/
+ANN) contribute about half of the total accuracy gain respectively. The improvement of
+the ELSA/ANN model in actual hit rate could make a meaningful difference in profit as
+the number of targeted prospects increases.<p>
+ &nbsp;&nbsp;The resulting model of ELSA/ANN is also easier to interpret than that of PCA/logit.
+This is because, in the PCA/logit model, it is difficult to interpret the meaning of each of
+PC in high-dimensional feature spaces. Further, the ELSA/ANN model makes it possible
+to evaluate the predictive importance of each features. The chosen seven features by
+the ELSA/ANN model are: customer main type (average family), contribution to thirdparty policy, car policy, moped policy, fire policy, number of third-party policies, and
+social security policies.<p>  &nbsp;&nbsp;Among those features, we expected at least one of the car
+insurance-related features to be selected. Moped policy ownership is justified by the
+fact that many people carry their mopeds or bicycles on the back of RVs. Those two
+features are selected again by the ELSA/logit model.5
+ Using this type of information, we
+were able to build a potentially valuable profile of likely customers (Kim & Street, 2000).<p>
+ &nbsp;&nbsp;The fact that the ELSA/ANN model used only seven features for customer prediction
+makes it possible to save a great amount of money through reduced storage requirements
+(86/93 ≈ 92.5%) and through the reduced labor and communication costs for data collection,
+transfer, and analysis. By contrast, the PCA/logit model needs the whole feature set to extract
+PCs. We also compare the lift curves of the three models. Figure 3 shows the cumulative hit
+      </p> </div><br>
+      <div class="first">
+      <i>Figure 3: Lift curves of three models that maximize the hit rate when targeting the top
+20% of prospects.</i><p>
+          <img src="Screenshot%202024-02-10%20140815.png"><p>
+          expensive, we use two-fold cross validation estimates of all solutions. We, however, set
+the values of the ELSA parameters with the same as in the previous experiment except
+pmax = 200 and T = 500. Based on the accuracy estimates, we choose a solution that has
+the highest estimated accuracy with less than half of the original features in both models.
+We evaluate the three models on the evaluation set and summarize the results in Table
+2 and in Figure 4.<p>
+&nbsp;&nbsp;The ELSA/ANN model works better than PCA/logit and ELSA/logit over the
+targeting range between 15% and 50%. In particular, ELSA/ANN is best at 15%, 20%,
+25%, and 50% of targeted customers, and approximately equal to the best at 30-45%. The
+overall performance of ELSA/logit is better than that of PCA/logit. We attribute this to
+the fact that solutions from both ELSA models exclude many irrelevant features. PCA/
+logit, however, is competitive for targeting more than 50% of the customers, since ELSA/
+ANN and ELSA/logit do not optimize over these ranges. Though the well-established
+parsimony of the ELSA/ANN models in Experiment 1 is largely lost in Experiment 2, the
+ELSA/ANN model is still superior to PCA/logit model in terms of the parsimony of
+selected features since the PCA/logit model needs the whole feature set to construct PCs.<p><br>
+          <i>Table 2: Summary of Experiment 2. The hit rates of three different models are shown
+over the top 50% of prospects
+</i><p>
+          <img src="Screenshot%202024-02-10%20140905.png">   
+          <p></div><br>
+      
+          <div class="first">
+      <i>Figure 4: Lift curves of three models that maximize the area under lift curve when
+targeting up to top 50% of prospects.</i>
+              <img src="Screenshot%202024-02-10%20140923.png"><p>
+              <p class="c"Conclusions><p>
+&nbsp;&nbsp;In this section, we presented a novel application of the multi-objective evolutionary
+algorithms for customer targeting. We used ELSA to search for possible combinations
+of features and an ANN to score customers based on the probability that they will buy
+the new service or product. The overall performance of ELSA/ANN in terms of accuracy
+was superior to the traditional method, PCA/logit, and an intermediate model, ELSA/
+logit. Further, the final output of the ELSA/ANN model was much easier to interpret
+because only a small number of features are used.<p>
+&nbsp;&nbsp;In future work, we want to investigate how more general objectives affect the
+parsimony of selected features. We also would like to consider a marketing campaign in
+a more realistic environment where various types of costs and net revenue for additional
+customers are considered. We could also consider budget constraints and minimum/
+maximum campaign sizes. This way, the number of targeted customers would be
+determined inside an optimization routine to maximize the expected profit.<p><br>
+              
+<p class="b">FEATURE SELECTION IN UNSUPERVISED<br>
+LEARNING</p>
+&nbsp;&nbsp;In this section, we propose a new approach to feature selection in clustering or
+unsupervised learning. This can be very useful for enhancing customer relationship
+management (CRM), because standard application of cluster analysis uses the complete
+set of features or a pre-selected subset of features based on the prior knowledge of market<p>
+              
+              </p></div><br>
+          
+           <div class="first"><p>
+            &nbsp;&nbsp;   managers. Thus, it cannot provide new marketing models that could be effective but have
+not been considered. Our data-driven approach searches a much broader space of models
+and provides a compact summary of solutions over possible feature subset sizes and
+numbers of clusters. Among such high-quality solutions, the manager can select a
+specific model after considering the model’s complexity and accuracy.<p>
+&nbsp;&nbsp;Our model is also different from other approaches (Agrawal et al., 1998; Devaney
+& Ram, 1997; Dy & Brodley 2000b) in two aspects: the evaluation of candidate solutions
+along multiple criteria, and the use of a local evolutionary algorithm to cover the space
+of feature subsets and of cluster numbers. Further, by identifying newly discovered
+feature subsets that form well-differentiated clusters, our model can affect the way new
+marketing campaigns should be implemented.<p><br>
+               <p class="c">EM Algorithm for Finite Mixture Models<p>
+               
+      &nbsp;&nbsp;The expectation maximization algorithm (Dempster, Laird, & Rubin,1977) is one of the
+most often used statistical modeling algorithms (Cheeseman & Stutz, 1996). The EM algorithm
+often significantly outperforms other clustering methods (Meila &Heckerman, 1998) and is
+superior to the distance-based algorithms (e.g., K-means) in the sense that it can handle
+categorical data. The EM algorithm starts with an initial estimate of the parameters and
+iteratively recomputes the likelihood that each pattern is drawn from a particular density
+function, and then updates the parameter estimates. For Gaussian distributions, the
+parameters are the mean µk
+ and covariance matrix Σk
+. Readers who are interested in algorithm
+detail refer to Buhmann (1995) and Bradley, Fayyad, and Reina (1998).<p>
+&nbsp;&nbsp;In order to evaluate the quality of the clusters formed by the EM algorithm, we use
+three heuristic fitness criteria, described below. Each objective is normalized into the unit
+interval and maximized by the EA.<p>
+Faccuracy:<br><p> &nbsp;&nbsp;This objective is meant to favor cluster models with parameters whose corresponding likelihood of the data given the model is higher. With estimated<p>
+distribution parameters µk
+ and Σk
+, <br><p> Faccuracy is computed as follows:
+∑ ∑ = =
+
+
+ 
+
+ = ⋅ Σ
+N
+n
+k n k k
+K
+k
+accuracy Z k F p c x accuracy
+1 1
+1 log ( | µ , )<br><p> where Zaccuracy is an empirically derived, data-dependent normalization constant meant
+to achieve Faccuracy values spanning the unit interval.
+Fclusters: The purpose of this objective is to favor clustering models with fewer clusters,
+if other things being equal.<br><p> 
+Fclusters = 1 - (K - Kmin) / (Kmax - Kmin) (7)
+where Kmax (Kmin) is the maximum (minimum) number of clusters that can be encoded into
+               a candidate solution’s representation.    </p></div><br>     
+           
+           <div class="first"><p>
+               <p class="c">The Wrapper Model of ELSA/EM<p>
+               &nbsp;&nbsp; We first outline the model of ELSA/EM in Figure 5. In ELSA, each agent (candidate
+solution) in the population is first initialized with some random solution and an initial
+reservoir of energy. The representation of an agent consists of (D + Kmax – 2) bits.<p> D bits
+correspond to the selected features (1 if a feature is selected, 0 otherwise). The remaining
+bits are a unary representation of the number of clusters.6
+ This representation is
+motivated by the desire to preserve the regularity of the number of clusters under the
+genetic operators; changing any one bit will change K by one.<p>
+ &nbsp;&nbsp;Mutation and crossover operators are used to explore the search space and are
+defined in the same way as in previous section. In order to assign energy to a solution,
+ELSA must be informed of clustering quality. In the experiments described here, the
+clusters to be evaluated are constructed based on the selected features using the EM
+algorithm. Each time a new candidate solution is evaluated, the corresponding bit string
+is parsed to get a feature subset J and a cluster number K. The clustering algorithm is<p>
+         <i>Figure 5: The pseudo-code of ELSA/EM.</i>  <p>
+               <img src="Screenshot%202024-02-10%20140943.png"><p>   
+               given the projection of the data set onto J, uses it to form K clusters, and returns the
+               fitness values.</p></div><br>
+      
+              <div class="first"><p>
+                  <p class="c">Experiments on the Synthetic Data<p>
+                  <i>Data set and baseline algorithm</i>
+                  <p>&nbsp;&nbsp;In order to evaluate our approach, we construct a moderate-dimensional synthetic
+data set, in which the distributions of the points and the significant features are known,
+while the appropriate clusters in any given feature subspace are not known. The data set
+has N = 500 points and D = 30 features. It is constructed so that the first 10 features are
+significant, with five “true” normal clusters consistent across these features. The next
+10 features are Gaussian noise, with points randomly and independently assigned to two
+normal clusters along each of these dimensions. The remaining 10 features are white
+noise. We evaluate the evolved solutions by their ability to discover five pre-constructed
+clusters in a 10-dimensional subspace.<p>
+&nbsp;&nbsp;We present some two-dimensional projections of the synthetic data set in Figure
+6. In our experiments, individuals are represented by 36 bits— 30 for the features and 6
+for K (Kmax = 8). There are 15 energy bins for all energy sources, Fclusters, Fcomplexity, and
+Faccuracy. The values for the various ELSA parameters are: Pr(mutation) = 1.0, Pr(crossover)
+= 0.8, pmax = 100, Ecost = 0.2, Etotal = 40, h = 0.3, and T = 30,000.<p><br>
+Experimental results
+&nbsp;&nbsp;We show the candidate fronts found by the ELSA/EM algorithm for each different
+number of clusters K in Figure 7.<br>
+We omit the candidate front for K = 8 because of its inferiority in terms of clustering
+quality and incomplete coverage of the search space. Composition of selected features
+is shown for Fcomplexity corresponding to 10 features (see text).<p>
+                  <i>Figure 6: A few two-dimensional projections of the synthetic data set</i><p>
+           <img src="Screenshot%202024-02-10%20141008.png"><p>
+                  </p></div><br>
+      <div class="first">
+         <p> We analyze whether our ELSA/EM model is able to identify the correct number of
+clusters based on the shape of the candidate fronts across different values of K and
+Faccuracy. The shape of the Pareto fronts observed in ELSA/EM is as follows: an ascent
+in the range of higher values of Fcomplexity (lower complexity), and a descent for lower values
+of Fcomplexity (higher complexity). This is reasonable because adding additional significant
+features will have a good effect on the clustering quality with few previously selected
+features. However, adding noise features will have a negative effect on clustering quality
+in the probabilistic model, which, unlike Euclidean distance, is not affected by dimensionality. The coverage of the ELSA/EM model shown in Figure 7 is defined as:<p><br>
+∑∈
+= Fcomplexity i
+i
+EM Faccuracy cov erage
+(9)<p>
+&nbsp;&nbsp;We note that the clustering quality and the search space coverage improve as the
+evolved number of clusters approaches the “true” number of clusters, K = 5. The
+candidate front for K = 5 not only shows the typical shape we expect, but also an overall
+improvement in clustering quality. The other fronts do not cover comparable ranges of
+the feature space either because of the agents’ low Fclusters (K = 7) or because of the agents’
+low Faccuracy and Fcomplexity (K = 2 and K = 3). A decision-maker again would conclude the
+right number of clusters to be five or six.<p>
+&nbsp;&nbsp;We note that the first 10 selected features, 0.69 ≤Fcomplexity≤ 1, are not all significant. This
+notion is again quantified through the number of significant / Gaussian noise / white noise
+features selected at Fcomplexity = 0.69 (10 features) in Figure 7.7
+ None of the “white noise” features
+is selected. We also show snapshots of the ELSA/EM fronts for K = 5 at every 3,000 solution
+evaluations in Figure 8. ELSA/EM explores a broad subset of the search space, and thus
+identifies better solutions across Fcomplexity as more solutions are evaluated. We observed
+similar results for different number of clusters K.<p>
+          <img src="Screenshot%202024-02-10%20141049.png">        
+          </p></div><br>
+      
+      <div class="first"><p>
+      
+    &nbsp;&nbsp;  Table 3 shows classification accuracy of models formed by both ELSA/EM and the
+greedy search. We compute accuracy by assigning a class label to each cluster based
+on the majority class of the points contained in the cluster, and then computing
+correctness on only those classes, e.g., models with only two clusters are graded on their
+ability to find two classes. ELSA results represent individuals selected from candidate
+fronts with less than eight features. ELSA/EM consistently outperforms the greedy
+search on models with few features and few clusters. For more complex models with more
+than 10 selected features, the greedy method often shows higher classification accuracy.<p>
+          <i>Figure 8: Candidate fronts for K = 5 based on Faccuracy evolved in ELSA/EM. It is captured
+at every 3,000 solution evaluations and two fronts (t = 18,000 and t = 24,000) are
+omitted because they have the same shape as the ones at t = 15,000 and t = 21,000,
+respectively.</i></p>
+           <img src="Screenshot%202024-02-10%20141110.png"><p>
+          <i>Table 3: The average classification accuracy (%) with standard error of five runs of
+ELSA/EM and greedy search. The “-” entry indicates that no solution is found by ELSA/
+EM. The last row and column show the number of win-loss-tie (W-L-T) cases of ELSA/
+EM compared with greedy search</i>
+          <img src="Screenshot%202024-02-10%20141128.png"><p>
+          </p></div><br>
+           <div class="first"><p>
+          <p class="b">Experiments on WPBC Data<p>
+              &nbsp;&nbsp;  We also tested our algorithm on a real data set, the Wisconsin Prognostic Breast
+Cancer (WPBC) data (Mangasarian, Street, & Wolberg, 1995). This data set records 30
+numeric features quantifying the nuclear grade of breast cancer patients at the University
+of Wisconsin Hospital, along with two traditional prognostic variables — tumor size and
+number of positive lymph nodes. This results in a total of 32 features for each of 198 cases.
+For the experiment, individuals are represented by 38 bits— 32 for the features and 6 for
+K (Kmax = 8). Other ELSA parameters are the same as those used in the previous
+experiments.<p>
+&nbsp;&nbsp; We analyzed performance on this data set by looking for clinical relevance in the
+resulting clusters. Specifically, we observe the actual outcome (time to recurrence, or
+known disease-free time) of the cases in the three clusters. Figure 9 shows the survival
+characteristics of three prognostic groups found by ELSA/EM. The three groups showed
+well-separated survival characteristics. Out of 198 patients, 59, 54, and 85 patients belong
+to the good, intermediate, and poor prognostic groups, respectively. The good prognostic group was welldifferentiated from the intermediate group (p < 0.076), and the
+intermediate group was significantly different from the poor group (p < 0.036). Five-year
+recurrence rates were 12.61%, 21.26%, and 39.85% for the patients in the three groups.
+The chosen dimensions by ELSA/EM included a mix of nuclear morphometric features,
+such as the mean and the standard error of the radius, perimeter, and area, and the largest
+value of the area and symmetry along three other features.<p>
+&nbsp;&nbsp; We note that neither of the traditional medical prognostic factors— tumor size and
+lymph node status— is chosen. This finding is potentially important because the lymph
+node status can be determined only after lymph nodes are surgically removed from the
+patient’s armpit (Street, Mangasarian, & Wolberg, 1995). We further investigate whether
+other solutions with lymph node information can form three prognostic groups as good
+as our EM solution.
+              <i>Figure 9: Estimated survival curves for the three groups found by ELSA/EM.</i>
+              <img src="Screenshot%202024-02-10%20141146.png"><br>
+               </p></div><br>
+              <div class="first"><p>
+                 &nbsp;&nbsp; For this purpose, we selected Pareto solutions across all different K values that have
+fewer than 10 features including lymph node information, and formed three clusters using
+these selected features, disregarding the evolved value of K. The survival characteristics
+of the three prognostic groups found by the best of these solutions were very competitive
+with our chosen solution. The good prognostic group was welldifferentiated from the
+intermediate group (p < 0.10), and the difference between the intermediate group and the
+poor group was significant (p < 0.026). This suggests that lymph node status may indeed
+have strong prognostic effects, even though it is excluded from the best models evolved
+by our algorithms.<p><br>
+                  
+<p class="c">Conclusions<p>
+                  
+&nbsp;&nbsp;In this section, we presented a new ELSA/EM algorithm for unsupervised feature
+selection. Our ELSA/EM model outperforms a greedy algorithm in terms of classification
+accuracy while considering a number of possibly conflicting heuristic metrics. Most
+importantly, our model can reliably select an appropriate clustering model, including
+significant features and the number of clusters.
+In future work, we would like to compare the performance of ELSA on the unsupervised feature selection task with other multi-objective EAs, using each in conjunction
+with clustering algorithms. Another promising future direction will be a direct comparison of different clustering algorithms in terms of the composition of selected features and
+prediction accuracy.<p><br>
+                  
+<p class="b">FEATURE SELECTION FOR ENSEMBLES<p>
+                  
+&nbsp;&nbsp;In this section, we propose a new meta-ensembles algorithm to directly optimize
+ensembles by creating a two-level evolutionary environment. In particular, we employ
+feature selection not only to increase the prediction accuracy of an individual classifier,
+but also to promote diversity among component classifiers in an ensemble (Opitz, 1999).
+<p>
+   <p class="c" >Feature Selection and Ensembles<p>
+Recently, many researchers have combined the predictions of multiple classifiers
+to produce a better classifier, an ensemble, and often have reported improved performance (Bauer & Kohavi, 1999;Breiman, 1996b). Bagging (Breiman, 1996a) and Boosting
+(Freund & Schapire, 1996) are the most popular methods for creating accurate ensembles.
+The effectiveness of Bagging and Boosting comes primarily from the diversity caused
+by resampling training examples while using the complete set of features to train
+component classifiers.<p>
+&nbsp;&nbsp;Recently, several attempts have been made to incorporate the diversity in feature
+dimension into ensemble methods. The Random Subspace Method (RSM) in Ho (1998a
+& 1998b) was one early algorithm that constructed an ensemble by varying the feature
+subset. RSM used C4.5 as a base classifier and randomly chose half of the original
+features to build each classifier. In Guerra-Salcedo and Whitley(1999), four differen                
+                  </p></div><br>
+      
+              <div class="first"><p>
+                  <i>Figure 10: Pseudo-code of Meta-Evolutionary Ensembles (MEE) algorithm.</i><p>
+              <img src="Screenshot%202024-02-10%20141209.png"><p>
+                  <br><i>Figure 11: Graphical depiction of energy allocation in the MEE. Individual classifiers
+(small boxes in the environment) receive energy by correctly classifying test points.
+Energy for each ensemble is replenished between generations based on the accuracy
+of the ensemble. Ensembles with higher accuracy have their energy bins replenished
+with more energy per classifier, as indicated by the varying widths of the bins.</i><p>
+                  <img src="Screenshot%202024-02-10%20141235.png">
+                  </p></div><br>
+      <div class="first"><p>
+          
+          the predicted class labels for the test examples. The agent collects ∆E from each example it
+correctly classifies, and is taxed once with Ecost. The net energy intake of an agent is determined
+by its classification accuracy. But the energy also depends on the state of the environment.
+We have an energy source for each ensemble, divided into bins corresponding to each data
+point. For ensemble g and record index r in the test data, the environment keeps track of energy
+Eenvt
+g,r and the number of agents in ensemble g, countg,r that correctly predict record r. The
+energy received by an agent for each correctly classified record r is given by<p><br>
+∆<i>E = Eenvt
+g,r / min(5, prevCountg,r).</i><p>
+&nbsp;&nbsp;An agent receives greater reward for correctly predicting an example that most in its
+ensemble get wrong. The min function ensures that for a given point there is enough energy
+to reward at least five agents in the new generation. Candidate solutions receive energy only
+inasmuch as the environment has sufficient resources; if these are depleted, no benefits are
+available until the environmental resources are replenished. Thus, an agent is rewarded with
+energy for its high fitness values, but also has an interest in finding unpopulated niches,
+where more energy is available. The result is a natural bias toward diverse solutions in the
+population. Ecost for any action is a constant (Ecost < θ).<p>
+&nbsp;&nbsp;In the selection part of the algorithm, an agent compares its current energy level with
+a constant reproduction threshold θ. If its energy is higher than θ, the agent reproduces; the
+agent and its mutated clone become part of the new population, with the offspring receiving
+half of its parent’s energy. If the energy level of an agent is positive but lower than θ, only
+that agent joins the new population.<p>
+&nbsp;&nbsp;The environment for each ensemble is replenished with energy based on its
+predictive accuracy, as determined by majority voting with equal weight among base
+classifiers. We sort the ensembles in ascending order of estimated accuracy and
+apportion energy in linear proportion to that accuracy, so that the most accurate
+ensemble is replenished with the greatest amount of energy per base classifier. Since the
+total amount of energy replenished also depends on the number of agents in each
+ensemble, it is possible that an ensemble with lower accuracy can be replenished with
+more energy in total than an ensemble with higher accuracy.<p><br>
+          
+<p class="c">Experimental Results<p>
+<i>Experimental results of MEE/ANN</i><p>
+&nbsp;&nbsp;We tested the performance of MEE combined with neural networks on several data
+sets that were used in Opitz(1999). In our experiments, the weights and biases of the
+neural networks are initialized randomly between 0.5 and -0.5, and the number of hidden
+nodes is determined heuristically as the square root of inputs. The other parameters for
+the neural networks include a learning rate of 0.1 and a momentum rate of 0.9. The number
+of training epochs was kept small for computational reasons. The values for the various
+parameters are: Pr(mutation) = 1.0, Pr(crossover) = 0.8, Ecost = 0.2, q = 0.3, and T = 30. The
+value of Eenvt
+tot = 30 is chosen to maintain a population size around 100 classifier agents.
+&nbsp;&nbsp;Experimental results are shown in Table 4. All computational results for MEE are
+based on the performance of the best ensemble and are averaged over five standard 10-<p>
+          </p></div><br>
+     <div class="first">
+              <p><i>Table 4: Experimental results of MEE/ANN</i><p>
+         <img src="Screenshot%202024-02-10%20141253.png"><p>
+        &nbsp;&nbsp; fold cross-validation experiments. Within the training algorithm, each ANN is trained on
+two-thirds of the training set and tested on the remaining third for energy allocation
+purposes. We present the performance of a single neural network using the complete
+set of features as a baseline algorithm. In the win-loss-tie results shown at the bottom
+of Table 4, a comparison is considered a tie if the intervals defined by one standard error8
+of the mean overlap. Of the data sets tested, MEE shows consistent improvement over
+a single neural network.<p>
+&nbsp;&nbsp;We also include the results of Bagging, AdaBoost, and GEFS from Opitz (1999) for
+indirect comparison. In these comparisons, we did not have access to the accuracy
+results of the individual runs. Therefore, a tie is conservatively defined as a test in which
+the one standard-deviation interval of our test contained the point estimate of accuracy
+from Opitz(1999). In terms of predictive accuracy, our algorithm demonstrates better or
+equal performance compared to single neural networks, Bagging and Boosting. However,
+MEE shows slightly worse performance compared to GEFS, possibly due to the methodological differences. For example, it is possible that the more complex structure of neural
+networks used in GEFS can learn more difficult patterns in data sets such as Glass and
+Labor data.<p>
+&nbsp;&nbsp;From the perspective of computational complexity, our algorithm can be very slow
+compared to Bagging and Boosting. However, MEE can be very fast compared to GEFS,
+because GEFS uses twice as many as input features as MEE. Further, the larger number
+of hidden nodes and longer training epochs can make GEFS extremely slow.
+         </p></div><br>
+      
+         
+        <div class="first"><p>
+            <i>Guidelines toward optimized ensemble construction</i>
+&nbsp;&nbsp;In this section, we use MEE to examine ensemble characteristics and provide some
+guidelines for building optimal ensembles. We expect that by optimizing the ensemble
+construction process, MEE will in general achieve comparable accuracy to other methods
+using fewer individuals. We use data collected from the first fold of the first crossvalidation routine for the following analyses.<p>
+&nbsp;&nbsp;We first investigate whether the ensemble size is positively related with the predictive
+accuracy. It has been well established that, to a certain degree, the predictive accuracy of an
+ensemble improves as the number of classifiers in the ensemble increases. For example, our
+result in Figure 12 indicates that accuracy improvements flatten out at an ensemble size of
+approximately 15-25. We also investigate whether the diversity among classifiers is
+positively related with the ensemble’s classification performance. In our experiments, we
+measured the diversity based on the difference of predicted class between each classifier and
+the ensemble. We first define a new operator ⊕ as follows: α ⊕ β = 0 if α = β, 1 otherwise.
+When an ensemble e consists of g classifiers, the diversity of ensemble e, diversitye
+, is defined
+as follows:<br><p>
+diversity ⋅
+∑∑ ⊕
+= = =( )<p>
+            where N is the number of records in the test data and predj
+i
+ and predj
+e represent the
+predicted class label for record j by classifier i and ensemble e respectively. The larger
+the value of diversitye
+, the more diverse the ensemble is.
+We show the relationship between the predictive accuracy and ensemble diversity
+in Figure 12. This shows the expected positive relationship between accuracy and
+diversity. However, our results show that too much diversity among classifiers can
+deteriorate ensemble performance, as the final decision made by ensemble becomes a
+random guess.<p><i>Figure 12: The relationship between the predictive accuracy and ensemble size (left),
+and between the predictive accuracy and ensemble diversity (right) with 95% confidence
+interval on the Soybean data. We observed similar patterns on other data sets.</i><br><p>
+     
+            <img src="Screenshot%202024-02-10%20141311.png"><p>
+            </p></div><br>
+      
+      <div class="first">
+      <p class="c">Conclusions<p>
+         &nbsp;&nbsp; In this section, we propose a new two-level ensemble construction algorithm, MetaEvolutionary Ensembles (MEE), that uses feature selection as the diversity mechanism.<p>
+At the first level, individual classifiers compete against each other to correctly predict
+held-out examples. Classifiers are rewarded for predicting difficult points, relative to the
+other members of their respective ensembles. At the top level, the ensembles compete
+directly based on classification accuracy.<p>
+ &nbsp;&nbsp;Our model shows consistently improved classification performance compared to a
+single classifier at the cost of computational complexity. Compared to the traditional
+ensembles (Bagging and Boosting) and GEFS, our resulting ensemble shows comparable
+performance while maintaining a smaller ensemble. Further, our two-level evolutionary
+framework confirms that more diversity among classifiers can improve predictive accuracy. Up to a certain level, the ensemble size also has a positive effect on the ensemble
+performance.<p>
+ &nbsp;&nbsp;The next step is to compare this algorithm more rigorously to others on a larger
+collection of data sets, and perform any necessary performance tweaks on the EA energy
+allocation scheme. This new experiment is to test the claim that there is relatively little
+room for other ensembles algorithm to obtain further improvement over decision forest
+method (Breiman, 1999). Along the way, we will examine the role of various characteristics
+of ensembles (size, diversity, etc.) and classifiers (type, number of dimensions/data
+points, etc.). By giving the system as many degrees of freedom as possible and observing
+the characteristics that lead to successful ensembles, we can directly optimize these
+characteristics and translate the results to a more scalable architecture (Street & Kim,
+2001) for large-scale predictive tasks<p><br>
+          <p class="b">CONCLUSIONS<p>
+          &nbsp;&nbsp;In this chapter, we proposed a new framework for feature selection in supervised
+and unsupervised learning. In particular, we note that each feature subset should be
+evaluated in terms of multiple objectives. In supervised learning, ELSA with neural
+networks model (ELSA/ANN) was used to search for possible combinations of features
+and to score customers based on the probability of buying new insurance product
+respectively. The ELSA/ANN model showed promising results in two different experiments, when market managers have clear decision scenario or when they don’t.<p> ELSA&nbsp;&nbsp;
+was also used for unsupervised feature selection. Our algorithm, ELSA/EM, outperforms
+a greedy algorithm in terms of classification accuracy. Most importantly, in the proposed
+framework we can reliably select an appropriate clustering model, including significant
+features and the number of clusters.<p>
+&nbsp;&nbsp;We also proposed a new ensemble construction algorithm, Meta-Evolutionary
+Ensembles (MEE), where feature selection is used as the diversity mechanism among
+classifiers in the ensemble. In MEE, classifiers are rewarded for predicting difficult
+points, relative to the other members of their respective ensembles. Our experimental
+results indicate that this method shows consistently improved performance compared
+to a single classifier and the traditional ensembles.
+          
+        </p></div><br>
+      <div class="first"><p>
+       &nbsp;&nbsp;   One major direction of future research on the feature selection with ELSA is to find
+a way to boost the weak selection pressure of ELSA while keeping its local selection
+mechanism. For problems requiring effective selection pressure, local selection may be
+too weak because the only selection pressure that ELSA can apply comes from the
+sharing of resources. Dynamically adjusting the local environmental structure based on
+the certain ranges of the observed fitness values over a fixed number of generations could
+be a promising solution. In this way, we could avoid the case in which the solution with
+the worst performance can survive into the next generation because there are no other
+solutions in its local environment.<p>
+&nbsp;&nbsp;Another major direction of future research is related with the scalability issue. By
+minimizing the communication among agents, our local selection mechanism makes ELSA
+efficient and scalable. However, our models suffer the inherent weakness of the wrapper
+model, the computational complexity. Further by combining EAs with ANN to take the
+advantages of both algorithms, it is possible that the combined model can be so slow that
+it cannot provide solutions in a timely manner. With the rapid growth of records and
+variables in database, this failure can be critical. Combining ELSA with faster learning
+algorithms such as decision tree algorithms and Support Vector Machine (SVM) will be
+worth pursuing.<p><br>
+          <p class="b">ENDNOTES</p>
+           Continuous objective functions are discretized.<p> 2 This is one of main tasks in the 2000 CoIL challenge (Kim & Street, 2000). For more
+          information about CoIL challenges and the data sets, please refer to http://
+<i>www.dcs.napier.ac.uk/coil/challenge/.</i><p> 3 If other objective values are equal, we prefer to choose a solution with small
+variance.<p> 4 This is reasonable because as we select more prospects, the expected accuracy gain
+will go down. If the marginal revenue from an additional prospect is much greater
+than the marginal cost, however, we could sacrifice the expected accuracy gain.
+Information on mailing cost and customer value was not available in this study.<p> 5 The other four features selected by the ELSA/logit model are: contribution to
+bicycle policy, fire policy, number of trailer, and lorry policies.<p> 6 The cases of zero or one cluster are meaningless, therefore we count the number of
+clusters as K = κ + 2 where κ is the number of ones and Kmin = 2 ≤ K ≤ Kmax.<p> 7 For K = 2, we use Fcomplexity = 0.76, which is the closest value to 0.69 represented in
+the front. <p>8 In our experiments, standard error is computed as standard deviation / iter0.5where
+iter = 5.
+          <br> </p></div><br>
+          
+      <div class="first"><p>
+          <p class="b">REFERENCES<p>
+          
+         &nbsp;&nbsp; <i>of the ACM SIGMOD Int’l Conference on Management of Data,</i> pp. 94-105, Seattle,
+WA.<p>
+Bauer, E. & Kohavi, R. (1999). An empirical comparison of voting classification
+algorithms: Bagging, boosting, and variants. Machine Learning, 36:105-139.
+Bradley, P. S., Fayyad, U. M., & Reina, C. (1998). Scaling EM (expectation-maximization)
+clustering to large databases. Technical Report MSR-TR-98-35, Microsoft, Redmond,
+WA.<p>
+     &nbsp;&nbsp; Breiman, L. (1996a). Bagging predictors. <i>Machine Learning,</i> 24(2):123-140.
+&nbsp;&nbsp;Breiman, L. (1996b). Bias, variance, and arching classifiers. Technical Report 460,
+University of California, Department of Statistics, Berkeley, CA.
+&nbsp;&nbsp;Breiman, L. (1999). Random forests-Random features. Technical Report 567, University
+of California, Department of Statistics, Berkeley, CA.
+&nbsp;&nbsp;Buhmann, J. (1995). Data clustering and learning. In Arbib, M. (ed.),<i> Handbook of Brain
+      Theory and Neural Networks.</i> Cambridge, MA: Bradfort Books/MIT Press.
+&nbsp;&nbsp;Cheeseman, P. & Stutz, J. (1996). Bayesian classification system (AutoClass): Theory
+and results. In U. Fayyad, G. Piatetsky-Shapiro, P. Smyth, & R. Uthurusamy(eds.),
+     &nbsp;&nbsp; <i>Advances in Knowledge Discovery and Data Mining, pp.</i> 153-180, San Francisco:
+AAAI/MIT Press.<p>
+&nbsp;&nbsp;Chen, S., Guerra-Salcedo, C., & Smith, S. (1999). Non-standard crossover for a standard
+representation - Commonality-based feature subset selection. In Proceedings of
+the Genetic and Evolutionary Computation Conference, pp. 129-134. San Francisco: Morgan Kaufmann.
+&nbsp;&nbsp;Cunningham, P. & Carney, J. (2000). Diversity versus quality in classification ensembles
+based on feature selection. Technical Report TCD-CS-2000-02, Trinity College,
+&nbsp;&nbsp;Department of Computer Science, Dublin, Ireland.<p>
+&nbsp;&nbsp;Dempster, A. P., Laird, N. M., & Rubin, D. B. (1977). Maximum likelihood from incomplete
+      data via the EM algorithm. <i>Journal of the Royal Statistical Society,</i> Series B,
+39(1):1-38.
+&nbsp;&nbsp;Devaney, M. & Ram, A. (1997). Efficient feature selection in conceptual clustering. In
+      <i>Proceedings of the 14th Int’l Conference on Machine Learning,</i> pp. 92-97. San
+Francisco: Morgan Kaufmann.<p>
+Dy, J. G. & Brodley, C. E. (2000a). Feature subset selection and order identification for
+<i>unsupervised learning. In Proceedings of the 17th Int’l Conference on Machine
+   &nbsp;&nbsp; Learning, pp. 247-254. San Francisco: Morgan Kaufmann.</i>
+Dy, J. G. & Brodley, C. E. (2000b). Visualization and interactive feature selection for
+unsupervised data. <i>In Proceedings of the 6th ACM SIGKDD Int’l Conference on
+     &nbsp;&nbsp; Knowledge Discovery & Data Mining (KDD-00), pp.</i> 360-364, ACM Press.
+Freund, Y. & Schapire, R. (1996). Experiments with a new boosting algorithm. In
+Proceedings of the 13th Int’l Conference on Machine Learning, pp. 148-156, Bari,
+Italy, Morgan Kaufmann.<p>
+&nbsp;&nbsp;Goldberg, D. E. & Richardson, J. (1987). Genetic algorithms with sharing for multimodal
+function optimization. <i>In Proceedings of the 2nd International Conference on
+Genetic Algorithms, pp. 41-49. Hillsdale, NJ: Lawrence Erlbaum.
+&nbsp;&nbsp;Guerra-Salcedo, C. & Whitley, D. (1999). Genetic approach to feature selection for
+ensemble creation. In GECCO-99: Proceedings of the Genetic and Evolutionary
+      Computation Conference, </i>pp. 236-243. San Francisco: Morgan Kaufmann.
+          <i>), Proceedings
+of the 12th International Conference on Machine Learning, pp. 522-530, San
+Francisco: Morgan Kaufmann.
+Van Veldhuizen, D. A. (1999). Multiobjective evolutionary algorithms: Classifications,
+analyses, and new innovations.</i> PhD thesis, Air Force Institute of Technology.
+      </p></div><br>
+           
+ </body>
+</html>
+      
